@@ -12,9 +12,9 @@
 3. [Flow Matching 이해하기](#3-flow-matching-이해하기)
 4. [Diffusion vs Flow Matching 비교](#4-diffusion-vs-flow-matching-비교)
 5. [수식](#5-수식-완전-정복)
-6. [코드로 이해하기 (처음부터 구현)](#6-코드로-이해하기-처음부터-구현)
+6. [코드로 이해](#6-코드로-이해)
 7. [Meta의 flow_matching 라이브러리 사용법](#7-meta의-flow_matching-라이브러리-사용법)
-8. [심화: 직선 경로의 이해](#8-심화-직선-경로의-이해)
+8. [Q: 직선 경로의 이해](#8-Q-직선-경로의-이해)
 9. [로보틱스 응용](#9-로보틱스-응용)
 
 ---
@@ -107,7 +107,7 @@ for t in reversed(range(T)):
 return x  # 생성된 데이터!
 ```
 
-중요: 매 스텝마다 새로운 노이즈를 추가합니다 (확률적 과정).
+중요: 매 스텝마다 새로운 노이즈를 추가합니다 (확률적 과정)
 
 ---
 
@@ -115,7 +115,7 @@ return x  # 생성된 데이터!
 
 ### 3.1 핵심 아이디어: 직선 경로
 
-Flow Matching은 노이즈에서 데이터로 가는 직선 경로를 정의합니다:
+Flow Matching은 노이즈에서 데이터로 가는 직선 경로를 정의합니다.
 
 ```
 노이즈 (x_0) ─────────────────> 데이터 (x_1)
@@ -189,7 +189,7 @@ for step in range(num_steps):
 
 학습할 때는 $x_1$을 알아서 정답을 계산할 수 있었습니다. 
 
-그런데 샘플링할 때는 어떻게 하죠?
+그런데 샘플링할 때는 어떻게 하죠?_?
 
 ```python
 x = torch.randn(...)  # 노이즈에서 시작
@@ -198,29 +198,29 @@ for t in steps:
     x = x + v * dt
 ```
 
-샘플링 시점에서 $x_1$ (목적지)을 모릅니다. 생성하려고 하는 중이니까요!
+샘플링 시점에서 $x_1$ (목적지)을 모릅니다. 생성하려고 하는 중이라서요
 
 그래서 모델은 "지금 위치 $x$에서, 목적지를 모르는 상태로, 평균적으로 어디로 가야 하는지"를 알려줘야 합니다. 이게 Marginal Velocity $v_t(x)$입니다:
 
 $$v_t(x) = \mathbb{E}_{x_1 \sim p(x_1|x_t=x)}[u_t(x|x_1)]$$
 
-#### 문제: Marginal Velocity는 계산 불가능!
+#### 문제: Marginal Velocity는 계산 불가능
 
 이걸 구하려면 $p(x_1|x_t=x)$, 즉 "지금 $x$에 있는데, 이게 어떤 데이터 $x_1$에서 온 거지?"를 알아야 합니다.
 
-이걸 알려면 모든 데이터 포인트에 대해 "이 $x$가 여기서 왔을 확률"을 계산해야 하는데, 데이터가 수백만 개면 불가능합니다!
+이걸 알려면 모든 데이터 포인트에 대해 "이 $x$가 여기서 왔을 확률"을 계산해야 하는데, 데이터가 수백만 개면 불가능합니다.
 
 #### 해결: Conditional Velocity를 학습하면 된다
 
-그런데 3.3에서 우리가 한 게 뭐였죠? 
+그런데 3.3에서 한 게 뭐였죠? 
 
 $x_1$을 정해놓고 (샘플링해서), 그에 대한 velocity $(x_1 - x_0)$를 학습했습니다. 이게 바로 Conditional Velocity입니다.
 
 $$u_t(x|x_1) = x_1 - x_0$$
 
-$x_0$도 내가 샘플링했고, $x_1$도 내가 샘플링했으니까, 계산 가능합니다. 적분 필요 없음!
+$x_0$도 내가 샘플링했고, $x_1$도 내가 샘플링했으니까, 계산 가능합니다. 적분 필요 없음
 
-#### 비유로 이해하기
+#### 비유로 이해...!
 
 | | Marginal | Conditional |
 |---|----------|-------------|
@@ -233,15 +233,14 @@ CFM (Conditional Flow Matching) 정리:
 
 $$\nabla_\theta \mathcal{L}_{\text{CFM}} = \nabla_\theta \mathcal{L}_{\text{FM}}$$
 
-Conditional target으로 학습해도, 실제로는 Marginal을 학습하는 것과 같은 효과!
+Conditional target으로 학습해도, 실제로는 Marginal을 학습하는 것과 같은 효과
 
 직관적으로:
 - 학습할 때: 랜덤하게 $(x_0, x_1)$ 쌍을 엄청 많이 뽑아서 각각의 방향 $(x_1 - x_0)$ 학습
 - 충분히 학습하면: 모델이 자연스럽게 "그 위치에서의 평균 방향"을 배우게 됨
+regression의 기본 성질입니다. 조건부 target들의 평균을 예측하도록 학습하면, 결국 marginal을 예측하게 됩니다.
 
-이건 regression의 기본 성질입니다. 조건부 target들의 평균을 예측하도록 학습하면, 결국 marginal을 예측하게 됩니다.
-
-#### Diffusion에서도 똑같은 문제가 있다!
+#### Diffusion에서도 똑같은 문제가 있다
 
 | | Diffusion | Flow Matching |
 |---|-----------|---------------|
@@ -250,7 +249,7 @@ Conditional target으로 학습해도, 실제로는 Marginal을 학습하는 것
 | 샘플링 때 모르는 것 | 원래 $x_0$가 뭐였는지 | 목적지 $x_1$이 뭔지 |
 | 모델이 예측하는 것 | "평균적인" 노이즈 방향 | "평균적인" velocity |
 
-Diffusion도 사실 conditional target ($\epsilon$)을 학습하지만, 충분히 학습하면 marginal하게 작동합니다!
+Diffusion도 사실 conditional target ($\epsilon$)을 학습하지만, 충분히 학습하면 marginal하게 작동한다고 합니다.
 
 ### 3.5 샘플링: ODE 풀기
 
@@ -271,13 +270,13 @@ for i in range(num_steps):
 return x  # 생성된 데이터! (t=1)
 ```
 
-중요: 새로운 노이즈를 추가하지 않습니다 (결정론적 과정).
+중요: 새로운 노이즈를 추가하지 않습니다 (결정론적 과정)
 
 ---
 
 ## 4. Diffusion vs Flow Matching 비교
 
-### 4.1 한눈에 비교
+### 4.1 비교
 
 | 구분 | Diffusion | Flow Matching |
 |------|-----------|---------------|
@@ -286,7 +285,6 @@ return x  # 생성된 데이터! (t=1)
 | 경로 | 곡선 (노이즈 스케줄 의존) | 직선 (Optimal Transport) |
 | 샘플링 | 확률적 (매 스텝 노이즈 추가) | 결정론적 (노이즈 없음) |
 | 재현성 | 같은 시작점 → 다른 결과 | 같은 시작점 → 같은 결과 |
-| 필요 스텝 수 | 보통 50-1000 | 보통 10-50 |
 
 ### 4.2 시각적 비교
 
@@ -319,7 +317,7 @@ for t in steps:
 
 Diffusion: 노이즈 스케줄에 의한 곡선 경로. Euler method로 근사하면 오차가 큼.
 
-Flow Matching: 완전한 직선 경로. Euler method가 직선을 거의 완벽히 따라감.
+Flow Matching: 직선 경로. Euler method가 직선을 거의 완벽히 따라감.
 
 ```
 곡선 경로 (Diffusion):
@@ -386,7 +384,7 @@ $$u_t(x|x_1) = \frac{d}{dt}[(1-t)x_0 + tx_1] = x_1 - x_0$$
 
 이건 시간 $t$에 무관하고, 알고 있는 값들로만 구성됩니다.
 
-#### CFM 정리 (핵심!)
+#### CFM 정리
 
 Conditional Flow Matching Loss:
 
@@ -396,13 +394,13 @@ Flow Matching Loss (이론적):
 
 $$\mathcal{L}_{\text{FM}} = \mathbb{E}_{t, x}\left[ \| v_\theta(x, t) - v_t(x) \|^2 \right]$$
 
-핵심 정리:
+정리:
 
 $$\nabla_\theta \mathcal{L}_{\text{CFM}} = \nabla_\theta \mathcal{L}_{\text{FM}}$$
 
 두 loss의 gradient가 같으므로, conditional target으로 학습해도 marginal velocity를 학습하는 것과 동일한 효과!
 
-#### 왜 이게 성립하는가? (직관)
+#### 왜 이게 성립하는가?
 
 Regression의 기본 성질:
 
@@ -418,7 +416,7 @@ Flow Matching에서:
 
 ---
 
-## 6. 코드로 이해하기 (처음부터 구현)
+## 6. 코드로 이해
 
 ### 6.1 간단한 2D 예제: Flow Matching
 
@@ -658,7 +656,7 @@ if __name__ == "__main__":
 
 ## 7. Meta의 flow_matching 라이브러리 사용법
 
-Meta (Facebook Research)에서 공식 Flow Matching 라이브러리를 제공합니다.
+Meta (Facebook Research)에서 공식 Flow Matching 라이브러리를 사용하는 방법
 
 ### 7.1 설치
 
@@ -867,7 +865,7 @@ samples = solver.sample(
 
 ### 7.7 이미지 생성 예제 (CIFAR-10 스타일)
 
-완전한 이미지 생성 예제입니다. 간단한 UNet 구조를 포함합니다.
+이미지 생성 예제입니다. 간단한 UNet 구조를 포함합니다.
 
 ```python
 import torch
@@ -1140,7 +1138,7 @@ if __name__ == "__main__":
 
 ---
 
-## 8. 심화: 직선 경로의 이해
+## 8. Q: 직선 경로의 이해
 
 ### 8.1 왜 직선 경로여도 되는가?
 
@@ -1181,7 +1179,7 @@ Optimal Transport 관점: 두 분포 사이에서 mass를 옮기는 최소 비�
 
 $$\min \mathbb{E}[\|x_1 - x_0\|^2]$$
 
-답: 직선! 돌아가거나 굽이치면 비용(거리)이 늘어나니까요.
+답: 직선, 돌아가거나 굽이치면 비용(거리)이 늘어남.
 
 | 직선의 장점 | 이유 |
 |------------|------|
@@ -1191,7 +1189,7 @@ $$\min \mathbb{E}[\|x_1 - x_0\|^2]$$
 
 ### 8.2 학습할 때 1:1 매칭인가?
 
-아니요! 여기가 중요한 포인트입니다.
+아니요! 
 
 #### 학습할 때: 랜덤 매칭
 
@@ -1336,7 +1334,7 @@ Diffusion의 곡선 경로는 노이즈를 점점 추가하는 방식이라 경�
 
 ### 8.6 다른 경로도 가능하다
 
-Flow Matching은 직선만 되는 게 아닙니다. 다른 경로도 선택 가능해요:
+Flow Matching은 직선만 되는 게 아닙니다. 다른 경로도 선택 가능함:
 
 ```python
 from flow_matching.path.scheduler import (
@@ -1351,7 +1349,7 @@ path_linear = AffineProbPath(scheduler=CondOTScheduler())
 path_curved = AffineProbPath(scheduler=VPScheduler())
 ```
 
-직선이 "유일한 정답"이 아니라 "효율적인 선택"인 거예요.
+직선이 "유일한 정답"이 아니라 "효율적인 선택"라고 볼 수 있습니다.
 
 ### 8.7 정리
 
