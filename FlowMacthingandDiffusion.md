@@ -1531,4 +1531,4 @@ print(f"Generated actions: {generated_actions.shape}")  # [1, 16, 7]
 | 재현성 | 없음 | 있음 |
 | 로보틱스 적합성 | 보통 | 높음 |
 
-**핵심 한 문장**: Flow Matching은 "노이즈에서 데이터까지 직선으로 가는 방향"을 학습하는 방법입니다.
+Flow Matching은 "노이즈에서 데이터까지 직선으로 가는 방향"을 학습하는 방법입니다.
