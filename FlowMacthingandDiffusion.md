@@ -23,14 +23,14 @@
 
 ### 1.1 목표
 
-Diffusion과 Flow Matching 모두 **같은 목표**를 가집니다:
+Diffusion과 Flow Matching 모두 같은 목표를 가집니다:
 
 ```
 노이즈 분포 ──────────────> 데이터 분포
 (랜덤한 점들)              (의미있는 데이터: 이미지, 로봇 동작 등)
 ```
 
-우리가 원하는 건 **랜덤한 노이즈에서 시작해서 진짜 같은 데이터를 만들어내는 것**입니다.
+우리가 원하는 건 랜덤한 노이즈에서 시작해서 진짜 같은 데이터를 만들어내는 것입니다.
 
 ### 1.2 핵심 질문
 
@@ -40,8 +40,8 @@ Diffusion과 Flow Matching 모두 **같은 목표**를 가집니다:
 
 | 방법 | 접근법 |
 |------|--------|
-| **Diffusion** | "데이터에 노이즈를 섞었을 때, 어떤 노이즈가 섞였는지 맞춰봐" |
-| **Flow Matching** | "지금 위치에서 데이터 방향이 어디인지 맞춰봐" |
+| Diffusion | "데이터에 노이즈를 섞었을 때, 어떤 노이즈가 섞였는지 맞춰봐" |
+| Flow Matching | "지금 위치에서 데이터 방향이 어디인지 맞춰봐" |
 
 ---
 
@@ -49,7 +49,7 @@ Diffusion과 Flow Matching 모두 **같은 목표**를 가집니다:
 
 ### 2.1 Forward Process: 노이즈 섞기
 
-Diffusion은 먼저 **깨끗한 데이터에 노이즈를 점점 섞는 과정**을 정의합니다:
+Diffusion은 먼저 깨끗한 데이터에 노이즈를 점점 섞는 과정을 정의합니다:
 
 ```
 깨끗한 이미지 → 약간 흐림 → 더 흐림 → ... → 완전한 노이즈
@@ -68,7 +68,7 @@ $$x_t = \sqrt{\bar\alpha_t} \cdot x_0 + \sqrt{1-\bar\alpha_t} \cdot \epsilon$$
 
 ### 2.2 학습: "어떤 노이즈가 섞였지?"
 
-Diffusion 모델은 **섞인 노이즈를 예측**하도록 학습합니다:
+Diffusion 모델은 섞인 노이즈를 예측하도록 학습합니다:
 
 ```python
 # Diffusion 학습 (pseudo-code)
@@ -88,11 +88,11 @@ for step in range(num_steps):
     loss.backward()
 ```
 
-**핵심**: 학습할 때는 우리가 직접 노이즈를 섞었으므로 **정답($\epsilon$)을 알고 있습니다**.
+핵심: 학습할 때는 우리가 직접 노이즈를 섞었으므로 정답($\epsilon$)을 알고 있습니다.
 
 ### 2.3 샘플링: 노이즈 빼기
 
-학습된 모델로 새 데이터를 생성할 때는 **역방향**으로 갑니다:
+학습된 모델로 새 데이터를 생성할 때는 역방향으로 갑니다:
 
 ```python
 # Diffusion 샘플링 (pseudo-code)
@@ -107,7 +107,7 @@ for t in reversed(range(T)):
 return x  # 생성된 데이터!
 ```
 
-**중요**: 매 스텝마다 **새로운 노이즈를 추가**합니다 (확률적 과정).
+중요: 매 스텝마다 새로운 노이즈를 추가합니다 (확률적 과정).
 
 ---
 
@@ -115,7 +115,7 @@ return x  # 생성된 데이터!
 
 ### 3.1 핵심 아이디어: 직선 경로
 
-Flow Matching은 **노이즈에서 데이터로 가는 직선 경로**를 정의합니다:
+Flow Matching은 노이즈에서 데이터로 가는 직선 경로를 정의합니다:
 
 ```
 노이즈 (x_0) ─────────────────> 데이터 (x_1)
@@ -134,9 +134,9 @@ $$x_t = (1-t) \cdot x_0 + t \cdot x_1$$
 
 ### 3.2 Velocity 구하기: 학습 target
 
-경로 $x_t = (1-t)x_0 + tx_1$를 정의했으니, 이제 모델이 학습할 **target**을 구해야 합니다.
+경로 $x_t = (1-t)x_0 + tx_1$를 정의했으니, 이제 모델이 학습할 target을 구해야 합니다.
 
-Flow Matching에서 모델은 **velocity** (속도 벡터)를 예측합니다. "지금 위치에서 어느 방향으로 가야 하는지"를 알려주는 값입니다.
+Flow Matching에서 모델은 velocity (속도 벡터)를 예측합니다. "지금 위치에서 어느 방향으로 가야 하는지"를 알려주는 값입니다.
 
 #### Velocity 유도
 
@@ -152,15 +152,15 @@ $$= x_0 \cdot (-1) + x_1 \cdot (1) = x_1 - x_0$$
 
 $$\text{velocity} = x_1 - x_0$$
 
-이건 그냥 **"시작점에서 끝점으로 향하는 방향"**입니다. 
+이건 그냥 "시작점에서 끝점으로 향하는 방향"입니다. 
 
 등속 직선 운동이라서 $t$가 식에 남지 않습니다. 출발할 때나 중간이나 도착 직전이나 같은 방향, 같은 속력으로 이동합니다.
 
-이 $(x_1 - x_0)$가 바로 **학습할 때 모델이 맞춰야 할 정답 (target)**이 됩니다.
+이 $(x_1 - x_0)$가 바로 학습할 때 모델이 맞춰야 할 정답 (target)이 됩니다.
 
 ### 3.3 학습: "어느 방향으로 가야 하지?"
 
-Flow Matching 모델은 **velocity(방향)**를 예측하도록 학습합니다:
+Flow Matching 모델은 velocity(방향)를 예측하도록 학습합니다:
 
 ```python
 # Flow Matching 학습 (pseudo-code)
@@ -183,13 +183,13 @@ for step in range(num_steps):
     loss.backward()
 ```
 
-**핵심**: 학습할 때는 $x_0$와 $x_1$ 모두 아니까 **정답(velocity = $x_1 - x_0$)을 알고 있습니다**.
+핵심: 학습할 때는 $x_0$와 $x_1$ 모두 아니까 정답(velocity = $x_1 - x_0$)을 알고 있습니다.
 
 ### 3.4 문제: 샘플링할 때는 $x_1$을 모른다
 
 학습할 때는 $x_1$을 알아서 정답을 계산할 수 있었습니다. 
 
-그런데 **샘플링할 때는 어떻게 하죠?**
+그런데 샘플링할 때는 어떻게 하죠?
 
 ```python
 x = torch.randn(...)  # 노이즈에서 시작
@@ -198,9 +198,9 @@ for t in steps:
     x = x + v * dt
 ```
 
-샘플링 시점에서 **$x_1$ (목적지)을 모릅니다**. 생성하려고 하는 중이니까요!
+샘플링 시점에서 $x_1$ (목적지)을 모릅니다. 생성하려고 하는 중이니까요!
 
-그래서 모델은 "지금 위치 $x$에서, 목적지를 모르는 상태로, 평균적으로 어디로 가야 하는지"를 알려줘야 합니다. 이게 **Marginal Velocity** $v_t(x)$입니다:
+그래서 모델은 "지금 위치 $x$에서, 목적지를 모르는 상태로, 평균적으로 어디로 가야 하는지"를 알려줘야 합니다. 이게 Marginal Velocity $v_t(x)$입니다:
 
 $$v_t(x) = \mathbb{E}_{x_1 \sim p(x_1|x_t=x)}[u_t(x|x_1)]$$
 
@@ -208,13 +208,13 @@ $$v_t(x) = \mathbb{E}_{x_1 \sim p(x_1|x_t=x)}[u_t(x|x_1)]$$
 
 이걸 구하려면 $p(x_1|x_t=x)$, 즉 "지금 $x$에 있는데, 이게 어떤 데이터 $x_1$에서 온 거지?"를 알아야 합니다.
 
-이걸 알려면 **모든 데이터 포인트**에 대해 "이 $x$가 여기서 왔을 확률"을 계산해야 하는데, 데이터가 수백만 개면 **불가능**합니다!
+이걸 알려면 모든 데이터 포인트에 대해 "이 $x$가 여기서 왔을 확률"을 계산해야 하는데, 데이터가 수백만 개면 불가능합니다!
 
 #### 해결: Conditional Velocity를 학습하면 된다
 
 그런데 3.3에서 우리가 한 게 뭐였죠? 
 
-$x_1$을 **정해놓고** (샘플링해서), 그에 대한 velocity $(x_1 - x_0)$를 학습했습니다. 이게 바로 **Conditional Velocity**입니다.
+$x_1$을 정해놓고 (샘플링해서), 그에 대한 velocity $(x_1 - x_0)$를 학습했습니다. 이게 바로 Conditional Velocity입니다.
 
 $$u_t(x|x_1) = x_1 - x_0$$
 
@@ -229,11 +229,11 @@ $x_0$도 내가 샘플링했고, $x_1$도 내가 샘플링했으니까, 계산 �
 
 #### 핵심 정리: 왜 Conditional을 학습해도 되는가?
 
-**CFM (Conditional Flow Matching) 정리**:
+CFM (Conditional Flow Matching) 정리:
 
 $$\nabla_\theta \mathcal{L}_{\text{CFM}} = \nabla_\theta \mathcal{L}_{\text{FM}}$$
 
-Conditional target으로 학습해도, 실제로는 Marginal을 학습하는 것과 **같은 효과**!
+Conditional target으로 학습해도, 실제로는 Marginal을 학습하는 것과 같은 효과!
 
 직관적으로:
 - 학습할 때: 랜덤하게 $(x_0, x_1)$ 쌍을 엄청 많이 뽑아서 각각의 방향 $(x_1 - x_0)$ 학습
@@ -271,7 +271,7 @@ for i in range(num_steps):
 return x  # 생성된 데이터! (t=1)
 ```
 
-**중요**: 새로운 노이즈를 추가하지 않습니다 (결정론적 과정).
+중요: 새로운 노이즈를 추가하지 않습니다 (결정론적 과정).
 
 ---
 
@@ -281,12 +281,12 @@ return x  # 생성된 데이터! (t=1)
 
 | 구분 | Diffusion | Flow Matching |
 |------|-----------|---------------|
-| **수학적 기반** | SDE (확률미분방정식) | ODE (상미분방정식) |
-| **학습 target** | 노이즈 $\epsilon$ | Velocity $x_1 - x_0$ |
-| **경로** | 곡선 (노이즈 스케줄 의존) | 직선 (Optimal Transport) |
-| **샘플링** | 확률적 (매 스텝 노이즈 추가) | 결정론적 (노이즈 없음) |
-| **재현성** | 같은 시작점 → 다른 결과 | 같은 시작점 → 같은 결과 |
-| **필요 스텝 수** | 보통 50-1000 | 보통 10-50 |
+| 수학적 기반 | SDE (확률미분방정식) | ODE (상미분방정식) |
+| 학습 target | 노이즈 $\epsilon$ | Velocity $x_1 - x_0$ |
+| 경로 | 곡선 (노이즈 스케줄 의존) | 직선 (Optimal Transport) |
+| 샘플링 | 확률적 (매 스텝 노이즈 추가) | 결정론적 (노이즈 없음) |
+| 재현성 | 같은 시작점 → 다른 결과 | 같은 시작점 → 같은 결과 |
+| 필요 스텝 수 | 보통 50-1000 | 보통 10-50 |
 
 ### 4.2 시각적 비교
 
@@ -317,9 +317,9 @@ for t in steps:
 
 ### 4.4 왜 Flow Matching이 적은 스텝으로 되나?
 
-**Diffusion**: 노이즈 스케줄에 의한 곡선 경로. Euler method로 근사하면 오차가 큼.
+Diffusion: 노이즈 스케줄에 의한 곡선 경로. Euler method로 근사하면 오차가 큼.
 
-**Flow Matching**: 완전한 직선 경로. Euler method가 직선을 거의 완벽히 따라감.
+Flow Matching: 완전한 직선 경로. Euler method가 직선을 거의 완벽히 따라감.
 
 ```
 곡선 경로 (Diffusion):
@@ -340,31 +340,31 @@ x_0 --------→ x_1   ← Euler 근사 (거의 일치!)
 
 ### 5.1 Diffusion 수식
 
-**Forward Process:**
+Forward Process:
 
 $$q(x_t | x_0) = \mathcal{N}(x_t; \sqrt{\bar\alpha_t}x_0, (1-\bar\alpha_t)I)$$
 
-**Reparameterization:**
+Reparameterization:
 
 $$x_t = \sqrt{\bar\alpha_t} x_0 + \sqrt{1-\bar\alpha_t} \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)$$
 
-**Loss Function:**
+Loss Function:
 
 $$\mathcal{L}_{\text{Diffusion}} = \mathbb{E}_{t, x_0, \epsilon}\left[ \| \epsilon_\theta(x_t, t) - \epsilon \|^2 \right]$$
 
 ### 5.2 Flow Matching 수식
 
-**Probability Path:**
+Probability Path:
 
 $$x_t = (1-t)x_0 + tx_1$$
 
 여기서 $x_0 \sim \mathcal{N}(0, I)$, $x_1 \sim p_{\text{data}}$
 
-**Conditional Velocity:**
+Conditional Velocity:
 
 $$u_t(x|x_1) = \frac{dx_t}{dt} = x_1 - x_0$$
 
-**Loss Function (Conditional Flow Matching):**
+Loss Function (Conditional Flow Matching):
 
 $$\mathcal{L}_{\text{CFM}} = \mathbb{E}_{t, x_0, x_1}\left[ \| v_\theta(x_t, t) - (x_1 - x_0) \|^2 \right]$$
 
@@ -376,7 +376,7 @@ $$\mathcal{L}_{\text{CFM}} = \mathbb{E}_{t, x_0, x_1}\left[ \| v_\theta(x_t, t) 
 
 $$v_t(x) = \int u_t(x|x_1) \cdot p(x_1|x_t=x) \, dx_1$$
 
-하지만 $p(x_1|x_t=x)$ (역방향 조건부 확률)은 **계산 불가능**합니다.
+하지만 $p(x_1|x_t=x)$ (역방향 조건부 확률)은 계산 불가능합니다.
 
 #### Conditional Velocity (우리가 실제로 계산하는 것)
 
@@ -384,23 +384,23 @@ $x_1$을 고정하면:
 
 $$u_t(x|x_1) = \frac{d}{dt}[(1-t)x_0 + tx_1] = x_1 - x_0$$
 
-이건 **시간 $t$에 무관**하고, 알고 있는 값들로만 구성됩니다.
+이건 시간 $t$에 무관하고, 알고 있는 값들로만 구성됩니다.
 
 #### CFM 정리 (핵심!)
 
-**Conditional Flow Matching Loss**:
+Conditional Flow Matching Loss:
 
 $$\mathcal{L}_{\text{CFM}} = \mathbb{E}_{t, x_0, x_1}\left[ \| v_\theta(x_t, t) - (x_1 - x_0) \|^2 \right]$$
 
-**Flow Matching Loss** (이론적):
+Flow Matching Loss (이론적):
 
 $$\mathcal{L}_{\text{FM}} = \mathbb{E}_{t, x}\left[ \| v_\theta(x, t) - v_t(x) \|^2 \right]$$
 
-**핵심 정리**:
+핵심 정리:
 
 $$\nabla_\theta \mathcal{L}_{\text{CFM}} = \nabla_\theta \mathcal{L}_{\text{FM}}$$
 
-두 loss의 **gradient가 같으므로**, conditional target으로 학습해도 marginal velocity를 학습하는 것과 동일한 효과!
+두 loss의 gradient가 같으므로, conditional target으로 학습해도 marginal velocity를 학습하는 것과 동일한 효과!
 
 #### 왜 이게 성립하는가? (직관)
 
@@ -477,7 +477,7 @@ def train_flow_matching(model, n_iterations=5000, batch_size=256, lr=1e-3):
         pred = model(x_t, t)
         
         # Loss
-        loss = ((pred - target) ** 2).mean()
+        loss = ((pred - target)  2).mean()
         
         loss.backward()
         optimizer.step()
@@ -587,7 +587,7 @@ def train_diffusion(model, n_iterations=5000, batch_size=256, T=1000, lr=1e-3):
         epsilon_pred = model(x_t, t_normalized)
         
         # Loss
-        loss = ((epsilon_pred - epsilon) ** 2).mean()
+        loss = ((epsilon_pred - epsilon)  2).mean()
         
         loss.backward()
         optimizer.step()
@@ -728,7 +728,7 @@ class VelocityMLP(nn.Module):
 # 2. ModelWrapper 상속 (공식 방식)
 class WrappedModel(ModelWrapper):
     """ODESolver가 사용하는 인터페이스로 모델 래핑"""
-    def forward(self, x: Tensor, t: Tensor, **extras) -> Tensor:
+    def forward(self, x: Tensor, t: Tensor, extras) -> Tensor:
         return self.model(x, t)
 
 # 3. 데이터 생성 함수 (체커보드 패턴)
@@ -1005,7 +1005,7 @@ class SimpleUNet(nn.Module):
 # ============================================
 
 class WrappedUNet(ModelWrapper):
-    def forward(self, x: Tensor, t: Tensor, **extras) -> Tensor:
+    def forward(self, x: Tensor, t: Tensor, extras) -> Tensor:
         return self.model(x, t)
 
 
@@ -1127,7 +1127,7 @@ if __name__ == "__main__":
     print("Done! Generated images saved to generated_cifar10.png")
 ```
 
-**코드 구조 요약:**
+코드 구조 요약:
 
 | 컴포넌트 | 설명 |
 |----------|------|
@@ -1156,7 +1156,7 @@ $$p_0 = \mathcal{N}(0, I) \quad \longrightarrow \quad p_1 = p_{\text{data}}$$
 - $t=0$에서 노이즈 분포
 - $t=1$에서 데이터 분포
 
-**중간에 어떤 경로로 가든, 최종 분포만 맞으면 됩니다!**
+중간에 어떤 경로로 가든, 최종 분포만 맞으면 됩니다!
 
 #### 비유: 서울에서 부산 가기
 
@@ -1165,23 +1165,23 @@ $$p_0 = \mathcal{N}(0, I) \quad \longrightarrow \quad p_1 = p_{\text{data}}$$
 | 곡선 (Diffusion) | 대전 거쳐서, 대구 거쳐서... |
 | 직선 (Flow Matching) | 직선으로 쭉! |
 
-둘 다 **부산에 도착**하면 목표 달성이에요. 어떤 경로로 갔는지는 최종 결과에 영향을 주지 않습니다.
+둘 다 부산에 도착하면 목표 달성이에요. 어떤 경로로 갔는지는 최종 결과에 영향을 주지 않습니다.
 
 #### 수학적으로: Continuity Equation만 만족하면 된다
 
-확률 분포 $p_t$와 velocity field $v_t$가 **연속 방정식**을 만족하면 OK:
+확률 분포 $p_t$와 velocity field $v_t$가 연속 방정식을 만족하면 OK:
 
 $$\frac{\partial p_t}{\partial t} + \nabla \cdot (p_t v_t) = 0$$
 
-이 조건을 만족하는 $(p_t, v_t)$ 쌍은 **무한히 많습니다**. Diffusion의 곡선 경로도 만족하고, Flow Matching의 직선 경로도 만족해요.
+이 조건을 만족하는 $(p_t, v_t)$ 쌍은 무한히 많습니다. Diffusion의 곡선 경로도 만족하고, Flow Matching의 직선 경로도 만족해요.
 
 #### 그런데 왜 하필 직선을 선택하나?
 
-**Optimal Transport 관점**: 두 분포 사이에서 mass를 옮기는 최소 비용 경로는?
+Optimal Transport 관점: 두 분포 사이에서 mass를 옮기는 최소 비용 경로는?
 
 $$\min \mathbb{E}[\|x_1 - x_0\|^2]$$
 
-답: **직선!** 돌아가거나 굽이치면 비용(거리)이 늘어나니까요.
+답: 직선! 돌아가거나 굽이치면 비용(거리)이 늘어나니까요.
 
 | 직선의 장점 | 이유 |
 |------------|------|
@@ -1191,7 +1191,7 @@ $$\min \mathbb{E}[\|x_1 - x_0\|^2]$$
 
 ### 8.2 학습할 때 1:1 매칭인가?
 
-**아니요!** 여기가 중요한 포인트입니다.
+아니요! 여기가 중요한 포인트입니다.
 
 #### 학습할 때: 랜덤 매칭
 
@@ -1204,7 +1204,7 @@ x_1 = sample_data(batch_size)         # 데이터들
 # ...
 ```
 
-매 배치마다 **랜덤하게 쌍이 맺어집니다**. 고정된 1:1 매칭이 아니에요.
+매 배치마다 랜덤하게 쌍이 맺어집니다. 고정된 1:1 매칭이 아니에요.
 
 같은 $x_1$ (데이터 포인트)이 다음 배치에서는 다른 $x_0$ (노이즈)와 쌍이 될 수 있습니다.
 
@@ -1218,13 +1218,13 @@ x_0[b] -----> x_1[강아지]    x_0[d] -----> x_1[강아지]
 
 #### 샘플링할 때
 
-샘플링할 때는 $x_0$ (노이즈)만 주어지고, 모델이 **평균적인 방향**을 예측해서 어딘가에 도착합니다.
+샘플링할 때는 $x_0$ (노이즈)만 주어지고, 모델이 평균적인 방향을 예측해서 어딘가에 도착합니다.
 
 어떤 특정 $x_1$으로 가는 게 아니라, 학습된 "평균 velocity field"를 따라가는 거예요. 이게 바로 앞서 설명한 Marginal Velocity입니다.
 
 ### 8.3 직선 경로의 단점: 경로 교차 (Path Crossing)
 
-직선 경로의 **가장 큰 단점**입니다!
+직선 경로의 가장 큰 단점입니다!
 
 #### 문제 상황
 
@@ -1237,13 +1237,13 @@ x_0[a] --------\    /-------> x_1[고양이]
 x_0[b] --------/    \-------> x_1[강아지]
 ```
 
-두 직선 경로가 **중간에서 교차**할 수 있어요.
+두 직선 경로가 중간에서 교차할 수 있어요.
 
 교차 지점에서:
 - 같은 위치 $x_t$인데
 - 가야 할 방향이 완전히 다름
 
-모델 입장에서 **혼란스럽습니다!** 같은 입력인데 다른 출력을 내야 하니까요.
+모델 입장에서 혼란스럽습니다! 같은 입력인데 다른 출력을 내야 하니까요.
 
 #### 이로 인한 문제들
 
@@ -1263,11 +1263,11 @@ x_0[b] --------/    \-------> x_1[강아지]
 노이즈 B -----> 강아지 이미지
 ```
 
-교차 지점의 $x_t$에서 모델이 "고양이 방향? 강아지 방향?" 혼란 → **흐릿한 중간 이미지** 생성 가능
+교차 지점의 $x_t$에서 모델이 "고양이 방향? 강아지 방향?" 혼란 → 흐릿한 중간 이미지 생성 가능
 
 ### 8.4 해결책: Mini-batch Optimal Transport
 
-랜덤 매칭 대신 **최적 매칭**을 하면 경로 교차가 줄어듭니다!
+랜덤 매칭 대신 최적 매칭을 하면 경로 교차가 줄어듭니다!
 
 #### 기본 방식 vs OT 방식
 
@@ -1286,7 +1286,7 @@ x_1 = x_1[assignment]  # 재배열해서 쌍 맺기
 
 #### OT 매칭이 하는 일
 
-"어떤 노이즈가 어떤 데이터로 가야 **전체 이동 거리가 최소**인가?"
+"어떤 노이즈가 어떤 데이터로 가야 전체 이동 거리가 최소인가?"
 
 ```
 OT 매칭 전 (랜덤):           OT 매칭 후:
@@ -1326,7 +1326,7 @@ target = x_1_matched - x_0
 
 ### 8.5 Diffusion은 이 문제가 적다
 
-Diffusion의 곡선 경로는 **노이즈를 점점 추가하는 방식**이라 경로 교차가 덜 심합니다.
+Diffusion의 곡선 경로는 노이즈를 점점 추가하는 방식이라 경로 교차가 덜 심합니다.
 
 | 방법 | 경로 교차 | 스텝 수 | Trade-off |
 |------|----------|---------|-----------|
@@ -1336,7 +1336,7 @@ Diffusion의 곡선 경로는 **노이즈를 점점 추가하는 방식**이라 
 
 ### 8.6 다른 경로도 가능하다
 
-Flow Matching은 직선만 되는 게 아닙니다. **다른 경로도 선택 가능**해요:
+Flow Matching은 직선만 되는 게 아닙니다. 다른 경로도 선택 가능해요:
 
 ```python
 from flow_matching.path.scheduler import (
@@ -1351,7 +1351,7 @@ path_linear = AffineProbPath(scheduler=CondOTScheduler())
 path_curved = AffineProbPath(scheduler=VPScheduler())
 ```
 
-**직선이 "유일한 정답"이 아니라 "효율적인 선택"인 거예요.**
+직선이 "유일한 정답"이 아니라 "효율적인 선택"인 거예요.
 
 ### 8.7 정리
 
@@ -1494,13 +1494,13 @@ print(f"Generated actions: {generated_actions.shape}")  # [1, 16, 7]
 
 ### 9.3 왜 로보틱스에서 Flow Matching이 유리한가?
 
-1. **빠른 inference**: Real-time control에 필수 (10-20 스텝 vs 50-100 스텝)
+1. 빠른 inference: Real-time control에 필수 (10-20 스텝 vs 50-100 스텝)
 
-2. **결정론적 출력**: 같은 observation → 같은 action (디버깅 용이)
+2. 결정론적 출력: 같은 observation → 같은 action (디버깅 용이)
 
-3. **부드러운 trajectory**: Optimal Transport 경로로 자연스러운 동작 생성
+3. 부드러운 trajectory: Optimal Transport 경로로 자연스러운 동작 생성
 
-4. **Consistency**: Diffusion의 확률적 특성으로 인한 action jittering 없음
+4. Consistency: Diffusion의 확률적 특성으로 인한 action jittering 없음
 
 ---
 
