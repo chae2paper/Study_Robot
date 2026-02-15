@@ -1,12 +1,13 @@
 # Flow Matching vs Diffusion: 완전 정복 가이드
 
-> 이 문서는 Diffusion과 Flow Matching을 처음 접하는 사람도 이해할 수 있도록, 직관부터 수식, 그리고 실제 코드까지 단계별로 설명합니다.
+> 이 문서는 Diffusion과 Flow Matching을 처음 접하는 사람도 이해할 수 있도록, 직관부터 수식, 그리고 실제 코드까지 단계별로 설명하려고 노력합니다
+> 제가 공부하고자 만든 문서이기 때문에 내용이 부족하거나 오류가 있다면 issues 부탁드립니다 :)
 
 ---
 
 ## 목차
 
-1. [핵심 직관: 생성 모델이란?](#1-핵심-직관-생성-모델이란)
+1. [생성 모델이란?](#1-생성-모델이란)
 2. [Diffusion 이해하기](#2-diffusion-이해하기)
 3. [Flow Matching 이해하기](#3-flow-matching-이해하기)
 4. [Diffusion vs Flow Matching 비교](#4-diffusion-vs-flow-matching-비교)
@@ -18,7 +19,7 @@
 
 ---
 
-## 1. 핵심 직관: 생성 모델이란?
+## 1. 생성 모델이란?
 
 ### 1.1 목표
 
